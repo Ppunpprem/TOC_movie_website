@@ -1,3 +1,9 @@
+/* Tailwind Directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom global styles */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -5,8 +11,7 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
+  background-color: #141414; /* Dark background similar to Netflix */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -15,11 +20,12 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #E50914; /* Netflix red color */
   text-decoration: inherit;
 }
+
 a:hover {
-  color: #535bf2;
+  color: #747bff; /* Lighter hover effect */
 }
 
 body {
@@ -46,9 +52,11 @@ button {
   cursor: pointer;
   transition: border-color 0.25s;
 }
+
 button:hover {
-  border-color: #646cff;
+  border-color: #E50914; /* Netflix red border on hover */
 }
+
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
@@ -56,13 +64,54 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: #213547; /* Dark text color for light mode */
+    background-color: #ffffff; /* White background for light mode */
   }
+  
   a:hover {
-    color: #747bff;
+    color: #747bff; /* Lighter hover effect for light mode */
   }
+  
   button {
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* Light background for buttons in light mode */
   }
 }
+
+/* Tailwind CSS customizations */
+@layer base {
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    font-family: 'system-ui', 'Avenir', 'Helvetica', 'Arial', sans-serif;
+    color: var(--color-text);
+    background-color: var(--color-background);
+  }
+}
+
+/* Enable Dark Mode Styles */
+@layer components {
+  .dark body {
+    --color-background: #141414; /* Dark background for dark mode */
+    --color-text: #ffffff; /* White text for dark mode */
+  }
+
+  .dark a {
+    color: #E50914; /* Netflix red color in dark mode */
+  }
+
+  .dark a:hover {
+    color: #747bff; /* Lighter hover color in dark mode */
+  }
+
+  .dark button {
+    background-color: #333333; /* Dark button background for dark mode */
+  }
+
+  .dark button:hover {
+    border-color: #E50914; /* Dark mode button hover */
+  }
+}
+
+/* Add any other custom classes here */
