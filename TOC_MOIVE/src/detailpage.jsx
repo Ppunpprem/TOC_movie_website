@@ -16,8 +16,11 @@ const MOCK_MOVIE = {
   budget: "$100,000,000",
   boxOffice: "$953,800,000",
   releaseDate: "July 21, 2023",
+  imdbScore: "8.4 / 10",
+  rottenTomatoes: "93%",
+  awardsInfo: "Won 7 Oscars. Another 300 wins & 350 nominations.",
   backdrop:
-    "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600&q=80",
+    "https://lumiere-a.akamaihd.net/v1/images/avatar-twow-videobg01_cdd3dcb8.jpeg?region=0,0,1920,1080&width=768",
   plot: "In 1980s Indiana, a group of young friends witness supernatural forces and secret government exploits. As they search for answers, the children unravel a series of extraordinary mysteries.",
   cast: [
     { name: "John Smith", img: "https://i.pravatar.cc/150?img=1" },
@@ -71,11 +74,12 @@ function ErrorState({ onBack }) {
   return (
     <div className="w-full min-h-screen bg-[#0d0d0d] text-white flex flex-col items-center justify-center gap-6">
       <div className="text-6xl">🎬</div>
-      <h2 className="text-2xl font-bold text-gray-200">ไม่พบหนังนี้</h2>
-      <p className="text-gray-500 text-sm">อาจถูกลบออกจากระบบแล้ว หรือ ID ไม่ถูกต้อง</p>
+      <h2 className="text-2xl font-bold text-gray-200">Movie don't found</h2>
+      <p className="text-gray-500 text-sm">May be deleted or wrong ID</p>
       <button
         onClick={onBack}
         className="px-6 py-2.5 bg-red-600 hover:bg-red-500 rounded-lg font-semibold transition-colors text-sm"
+        style={{ border: 'none' }}
       >
         ← กลับหน้าหลัก
       </button>
@@ -132,20 +136,10 @@ export default function DetailPage({ movie: movieProp, onBack }) {
         <img
           src={movie.backdrop}
           alt={movie.title}
-          className="absolute inset-0 w-full h-full object-cover object-center opacity-55"
+          className="absolute inset-0 w-full h-full object-cover object-center opacity-100"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d88] to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#000000] via-[#0d0d0d88] to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d] via-transparent to-transparent" />
-
-        {/* Back Button — icon only */}
-        <button
-          onClick={handleBack}
-          aria-label="กลับ"
-          className="absolute top-6 left-6 z-20 text-white/60 hover:text-white transition-colors duration-200 text-3xl leading-none"
-          style={{ background: 'none', border: 'none', padding: 0 }}
-        >
-          ←
-        </button>
 
         {/* Title block */}
         <div className="relative z-10 flex flex-col justify-end h-full px-6 md:px-12 pb-10 w-full max-w-4xl">
@@ -281,6 +275,35 @@ export default function DetailPage({ movie: movieProp, onBack }) {
               ))}
             </div>
           </section>
+
+          {/* Awards & Ratings */}
+          {(movie.imdbScore || movie.rottenTomatoes || movie.awardsInfo) && (
+            <section>
+              <h2 className="text-base font-bold mb-3 tracking-widest uppercase text-gray-200 border-b border-gray-700 pb-2">
+                Awards &amp; Ratings
+              </h2>
+              <div className="space-y-2 text-sm">
+                {movie.imdbScore && (
+                  <p>
+                    <span className="text-gray-400 font-semibold">IMDb Score: </span>
+                    <span className="text-gray-200">{movie.imdbScore}</span>
+                  </p>
+                )}
+                {movie.rottenTomatoes && (
+                  <p>
+                    <span className="text-gray-400 font-semibold">Rotten Tomatoes: </span>
+                    <span className="text-gray-200">{movie.rottenTomatoes}</span>
+                  </p>
+                )}
+                {movie.awardsInfo && (
+                  <p>
+                    <span className="text-gray-400 font-semibold">Awards Info: </span>
+                    <span className="text-gray-200">{movie.awardsInfo}</span>
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </div>
     </div>
