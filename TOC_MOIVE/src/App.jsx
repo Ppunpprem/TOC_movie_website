@@ -33,10 +33,29 @@
 // }
 
 // export default App
+import { useState } from 'react'
 import DetailPage from './detailpage.jsx'
+import HomePage from './HomePage.jsx'
 
 function App() {
-  return <DetailPage />
+  const [page, setPage] = useState('home')
+  const [selectedMovie, setSelectedMovie] = useState(null)
+
+  const goHome = () => {
+    setPage('home')
+    setSelectedMovie(null)
+  }
+
+  const goDetail = (movie) => {
+    setSelectedMovie(movie)
+    setPage('detail')
+  }
+
+  if (page === 'detail') {
+    return <DetailPage movie={selectedMovie} onBack={goHome} />
+  }
+
+  return <HomePage onMovieClick={goDetail} onHomeClick={goHome} />
 }
 
 export default App
