@@ -128,7 +128,7 @@ export default function DetailPage({ movie: movieProp, onBack }) {
   if (error || !movie) return <ErrorState onBack={handleBack} />;
 
   return (
-    <div className="w-full min-h-screen bg-[#0d0d0d] text-white font-sans overflow-x-hidden">
+    <div className="w-full min-h-screen text-white font-sans" style={{ background: "#111", overflowX: 'clip' }}>
       <Navbar />
 
       {/* ── HERO ── */}

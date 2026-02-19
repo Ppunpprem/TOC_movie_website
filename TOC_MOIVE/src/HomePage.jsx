@@ -155,7 +155,7 @@ function MovieCard({ movie, onMovieClick }) {
 // ============================================================
 // SCROLL ROW
 // ============================================================
-function ScrollRow({ title, items, onMovieClick }) {
+function ScrollRow({ title, items, onMovieClick, onSeeMore }) {
   const ref = useRef(null);
   const scroll = (dir) => {
     if (ref.current) ref.current.scrollBy({ left: dir * 400, behavior: "smooth" });
@@ -166,14 +166,18 @@ function ScrollRow({ title, items, onMovieClick }) {
       <div className="flex items-center justify-between mb-4 px-4 sm:px-6 md:px-10">
         <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">{title}</h2>
 
-        {/* "See more" — red filled box, hidden on mobile */}
-        <button style={{ background: 'none', border: 'none', color: '#e50914' }} className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-bold hover:opacity-75 transition-opacity cursor-pointer">
+        {/* "See more" button — now calls onSeeMore */}
+        <button
+          onClick={onSeeMore}
+          style={{ background: 'none', border: 'none', color: '#e50914' }}
+          className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-bold hover:opacity-75 transition-opacity cursor-pointer"
+        >
           See more <span className="text-base">›</span>
         </button>
       </div>
 
       <div className="relative group/scroller">
-        {/* Left arrow — red, no border */}
+        {/* Left arrow */}
         <button
           onClick={() => scroll(-1)}
           className="hidden absolute left-1 top-[40%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-red-600/80 items-center justify-center text-white text-xl opacity-0 group-hover/scroller:opacity-100 transition-opacity hover:bg-red-600"
@@ -191,7 +195,7 @@ function ScrollRow({ title, items, onMovieClick }) {
           ))}
         </div>
 
-        {/* Right arrow — red, no border */}
+        {/* Right arrow */}
         <button
           onClick={() => scroll(1)}
           className="hidden absolute right-1 top-[40%] -translate-y-1/2 z-10 w-9 h-9 rounded-full bg-red-600/80 items-center justify-center text-white text-xl opacity-0 group-hover/scroller:opacity-100 transition-opacity hover:bg-red-600"
@@ -206,10 +210,12 @@ function ScrollRow({ title, items, onMovieClick }) {
 // ============================================================
 // GENRE CARD — 2×2 poster grid
 // ============================================================
-function GenreCard({ genre }) {
+function GenreCard({ genre, onGenreClick }) {
   return (
-    <div className="relative cursor-pointer group overflow-hidden rounded-xl border border-white/5">
-      {/* 2×2 poster grid */}
+    <div
+      onClick={() => onGenreClick && onGenreClick(genre.label)}
+      className="relative cursor-pointer group overflow-hidden rounded-xl border border-white/5"
+    >
       <div className="grid grid-cols-2 grid-rows-2 aspect-[4/3]">
         {genre.posters.slice(0, 4).map((p, i) => (
           <img
@@ -220,9 +226,7 @@ function GenreCard({ genre }) {
           />
         ))}
       </div>
-      {/* Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
-      {/* Label */}
       <div className="absolute bottom-0 left-0 right-0 p-3 flex items-end justify-between">
         <div>
           <span className={`text-[10px] font-bold px-2 py-0.5 rounded text-white uppercase tracking-wide ${genre.color}`}>
@@ -269,7 +273,6 @@ function Hero({ onMovieClick }) {
       className="relative w-full overflow-hidden"
       style={{ height: "clamp(420px, 70vw, 520px)" }}
     >
-      {/* Backdrop */}
       <div
         className="absolute inset-0"
         style={{ opacity: visible ? 1 : 0, transition: "opacity 0.4s ease" }}
@@ -284,7 +287,6 @@ function Hero({ onMovieClick }) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent" />
       </div>
 
-      {/* Text content */}
       <div
         className="relative z-10 h-full flex flex-col justify-center px-4 sm:px-6 md:px-10 w-full sm:max-w-md md:max-w-lg"
         style={{ opacity: visible ? 1 : 0, transition: "opacity 0.4s ease" }}
@@ -304,7 +306,6 @@ function Hero({ onMovieClick }) {
           {movie.plot}
         </p>
 
-        {/* See More — Netflix red */}
         <button
           onClick={() => onMovieClick && onMovieClick(movie)}
           style={{ backgroundColor: '#e50914', color: '#fff', border: 'none', cursor: 'pointer' }}
@@ -314,7 +315,6 @@ function Hero({ onMovieClick }) {
         </button>
       </div>
 
-      {/* Dot indicators */}
       <div className="absolute bottom-4 left-4 sm:left-6 md:left-10 flex gap-1 z-10" style={{ alignItems: "center" }}>
         {HERO_MOVIES.map((_, i) => (
           <button
@@ -324,15 +324,9 @@ function Hero({ onMovieClick }) {
               height: "3px",
               width: i === idx ? "14px" : "5px",
               background: i === idx ? "white" : "rgba(255,255,255,0.3)",
-              padding: 0,
-              margin: 0,
-              border: "none",
-              outline: "none",
-              cursor: "pointer",
-              borderRadius: "999px",
-              transition: "all 0.3s ease",
-              display: "block",
-              flexShrink: 0,
+              padding: 0, margin: 0, border: "none", outline: "none",
+              cursor: "pointer", borderRadius: "999px",
+              transition: "all 0.3s ease", display: "block", flexShrink: 0,
             }}
           />
         ))}
@@ -347,15 +341,18 @@ function Hero({ onMovieClick }) {
 export default function HomePage() {
   const navigate = useNavigate();
   const handleMovieClick = (movie) => navigate(`/movie/${movie.id}`, { state: { movie } });
+  const handleSeeMore = () => navigate("/movies");
+  const handleGenreClick = (genre) => navigate(`/movies?sort=imdb_top10&genre=${encodeURIComponent(genre)}`);
+
   return (
-    <div className="w-full min-h-screen text-white font-sans overflow-x-hidden" style={{ background: "#111" }}>
+    <div className="w-full min-h-screen text-white font-sans" style={{ background: "#111", overflowX: 'clip' }}>
       <Navbar />
 
       <Hero onMovieClick={handleMovieClick} />
 
       <div className="pt-6 sm:pt-8">
-        <ScrollRow title="Trending" items={TRENDING} onMovieClick={handleMovieClick} />
-        <ScrollRow title="New Arrival" items={NEW_ARRIVAL} onMovieClick={handleMovieClick} />
+        <ScrollRow title="Trending"     items={TRENDING}     onMovieClick={handleMovieClick} onSeeMore={handleSeeMore} />
+        <ScrollRow title="New Arrival"  items={NEW_ARRIVAL}  onMovieClick={handleMovieClick} onSeeMore={handleSeeMore} />
 
         {/* Popular Top 10 In Genres */}
         <section className="px-4 sm:px-6 md:px-10 pb-16">
@@ -364,7 +361,7 @@ export default function HomePage() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {GENRES.map((g) => (
-              <GenreCard key={g.label} genre={g} />
+              <GenreCard key={g.label} genre={g} onGenreClick={handleGenreClick} />
             ))}
           </div>
         </section>
