@@ -93,14 +93,107 @@ function MovieCard({ movie }) {
   )
 }
 
+// ── useIsMobile hook ───────────────────────────────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useState(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  })
+  return isMobile
+}
+
+// ── Filter Panel (shared between sidebar & drawer) ─────────────────
+function FilterPanel({ selectedGenres, toggleGenre, yearInput, setYearInput, languageInput, setLanguageInput, onClear }) {
+  const hasFilter = selectedGenres.length > 0 || yearInput || languageInput
+  return (
+    <div>
+      {/* Genres */}
+      <div>
+        <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Genres</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+          {ALL_GENRES.map(g => (
+            <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: selectedGenres.includes(g) ? '#fff' : '#aaa' }}>
+              <input
+                type="checkbox"
+                checked={selectedGenres.includes(g)}
+                onChange={() => toggleGenre(g)}
+                style={{ accentColor: '#e50914', cursor: 'pointer' }}
+              />
+              {g}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '20px 0' }} />
+
+      {/* Release Year */}
+      <div>
+        <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Release Year</h3>
+        <input
+          type="text"
+          placeholder="Type Year Here"
+          value={yearInput}
+          onChange={e => setYearInput(e.target.value)}
+          style={{
+            width: '100%', background: '#2a2a2a', border: '1px solid #3a3a3a',
+            borderRadius: '6px', padding: '8px 10px', color: '#fff',
+            fontSize: '13px', outline: 'none', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '20px 0' }} />
+
+      {/* Languages */}
+      <div>
+        <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Languages</h3>
+        <input
+          type="text"
+          placeholder="e.g. English, Korean..."
+          value={languageInput}
+          onChange={e => setLanguageInput(e.target.value)}
+          style={{
+            width: '100%', background: '#2a2a2a', border: '1px solid #3a3a3a',
+            borderRadius: '6px', padding: '8px 10px', color: '#fff',
+            fontSize: '13px', outline: 'none', boxSizing: 'border-box',
+          }}
+        />
+      </div>
+
+      {hasFilter && (
+        <>
+          <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '20px 0' }} />
+          <button
+            onClick={onClear}
+            style={{
+              width: '100%', background: '#e50914', color: '#fff', border: 'none',
+              borderRadius: '6px', padding: '8px', fontSize: '13px', fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            Clear Filters
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Main MoviesPage ────────────────────────────────────────────────
 export default function MoviesPage() {
   const [selectedGenres, setSelectedGenres] = useState([])
   const [yearInput, setYearInput] = useState('')
   const [languageInput, setLanguageInput] = useState('')
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   const toggleGenre = (g) =>
     setSelectedGenres(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g])
+
+  const handleClear = () => { setSelectedGenres([]); setYearInput(''); setLanguageInput('') }
 
   const filtered = useMemo(() => {
     return MOVIES.filter(m => {
@@ -111,101 +204,104 @@ export default function MoviesPage() {
     })
   }, [selectedGenres, yearInput, languageInput])
 
+  const activeFilterCount = selectedGenres.length + (yearInput ? 1 : 0) + (languageInput ? 1 : 0)
+
+  const filterProps = { selectedGenres, toggleGenre, yearInput, setYearInput, languageInput, setLanguageInput, onClear: handleClear }
+
   return (
     <div style={{ minHeight: '100vh', background: '#141414', color: '#fff', fontFamily: 'sans-serif' }}>
       <Navbar />
 
+      {/* ── Mobile Filter Drawer Overlay ── */}
+      {isMobile && drawerOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => setDrawerOpen(false)}
+            style={{
+              position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+              zIndex: 100, top: '68px',
+            }}
+          />
+          {/* Drawer */}
+          <div style={{
+            position: 'fixed', top: '68px', left: 0, bottom: 0,
+            width: '280px', background: '#1a1a1a', borderRight: '1px solid #2a2a2a',
+            zIndex: 101, overflowY: 'auto', padding: '24px 20px', boxSizing: 'border-box',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>Filter By</h2>
+              <button
+                onClick={() => setDrawerOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: '4px' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <FilterPanel {...filterProps} />
+          </div>
+        </>
+      )}
+
       <div style={{ display: 'flex', alignItems: 'flex-start' }}>
 
-        {/* ── Sidebar Filter (sticky) ─────────────────────── */}
-        <aside style={{
-          width: '240px', minWidth: '240px',
-          background: '#1a1a1a', borderRight: '1px solid #2a2a2a',
-          position: 'sticky', top: '68px',
-          height: 'calc(100vh - 68px)', overflowY: 'auto',
-          padding: '24px 20px',
-          boxSizing: 'border-box',
-          flexShrink: 0,
-        }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '20px', margin: '0 0 20px' }}>Filter By</h2>
+        {/* ── Desktop Sidebar (hidden on mobile) ── */}
+        {!isMobile && (
+          <aside style={{
+            width: '240px', minWidth: '240px',
+            background: '#1a1a1a', borderRight: '1px solid #2a2a2a',
+            position: 'sticky', top: '68px',
+            height: 'calc(100vh - 68px)', overflowY: 'auto',
+            padding: '24px 20px',
+            boxSizing: 'border-box',
+            flexShrink: 0,
+          }}>
+            <FilterPanel {...filterProps} />
+          </aside>
+        )}
 
-          {/* Genres */}
-          <div>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Genres</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
-              {ALL_GENRES.map(g => (
-                <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '13px', color: selectedGenres.includes(g) ? '#fff' : '#aaa' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedGenres.includes(g)}
-                    onChange={() => toggleGenre(g)}
-                    style={{ accentColor: '#e50914', cursor: 'pointer' }}
-                  />
-                  {g}
-                </label>
-              ))}
-            </div>
-          </div>
+        {/* ── Main content ── */}
+        <main style={{ flex: 1, padding: isMobile ? '20px 16px' : '32px 32px', overflowY: 'auto' }}>
 
-          <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '20px 0' }} />
+          {/* Header row */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+            <h1 style={{ fontSize: isMobile ? '22px' : '28px', fontWeight: 800, margin: 0 }}>
+              Browse All Movies
+            </h1>
 
-          {/* Release Year */}
-          <div>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Release Year</h3>
-            <input
-              type="text"
-              placeholder="Type Year Here"
-              value={yearInput}
-              onChange={e => setYearInput(e.target.value)}
-              style={{
-                width: '100%', background: '#2a2a2a', border: '1px solid #3a3a3a',
-                borderRadius: '6px', padding: '8px 10px', color: '#fff',
-                fontSize: '13px', outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '20px 0' }} />
-
-          {/* Languages */}
-          <div>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: '#fff', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Languages</h3>
-            <input
-              type="text"
-              placeholder="e.g. English, Korean..."
-              value={languageInput}
-              onChange={e => setLanguageInput(e.target.value)}
-              style={{
-                width: '100%', background: '#2a2a2a', border: '1px solid #3a3a3a',
-                borderRadius: '6px', padding: '8px 10px', color: '#fff',
-                fontSize: '13px', outline: 'none', boxSizing: 'border-box',
-              }}
-            />
-          </div>
-
-          {/* Reset */}
-          {(selectedGenres.length > 0 || yearInput || languageInput) && (
-            <>
-              <hr style={{ border: 'none', borderTop: '1px solid #333', margin: '20px 0' }} />
+            {/* Mobile filter button */}
+            {isMobile && (
               <button
-                onClick={() => { setSelectedGenres([]); setYearInput(''); setLanguageInput('') }}
+                onClick={() => setDrawerOpen(true)}
                 style={{
-                  width: '100%', background: '#e50914', color: '#fff', border: 'none',
-                  borderRadius: '6px', padding: '8px', fontSize: '13px', fontWeight: 600,
-                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  background: '#2a2a2a', border: '1px solid #3a3a3a',
+                  color: '#fff', borderRadius: '8px', padding: '8px 14px',
+                  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  position: 'relative',
                 }}
               >
-                Clear Filters
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                  <line x1="11" y1="18" x2="13" y2="18"/>
+                </svg>
+                Filters
+                {activeFilterCount > 0 && (
+                  <span style={{
+                    background: '#e50914', color: '#fff', borderRadius: '50%',
+                    width: '18px', height: '18px', fontSize: '10px', fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'absolute', top: '-6px', right: '-6px',
+                  }}>
+                    {activeFilterCount}
+                  </span>
+                )}
               </button>
-            </>
-          )}
-        </aside>
-
-        {/* ── Main content ───────────────────────────────── */}
-        <main style={{ flex: 1, padding: '32px 32px', overflowY: 'auto' }}>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, marginBottom: '28px', margin: '0 0 28px' }}>
-            Browse All Movies
-          </h1>
+            )}
+          </div>
 
           {filtered.length === 0 ? (
             <div style={{ color: '#666', fontSize: '16px', marginTop: '60px', textAlign: 'center' }}>
@@ -214,8 +310,10 @@ export default function MoviesPage() {
           ) : (
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-              gap: '20px 16px',
+              gridTemplateColumns: isMobile
+                ? 'repeat(auto-fill, minmax(130px, 1fr))'
+                : 'repeat(auto-fill, minmax(160px, 1fr))',
+              gap: isMobile ? '16px 12px' : '20px 16px',
             }}>
               {filtered.map(movie => (
                 <MovieCard key={movie.id} movie={movie} />
