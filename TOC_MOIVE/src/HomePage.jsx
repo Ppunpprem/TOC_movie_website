@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 
 // ============================================================
@@ -126,9 +127,9 @@ function ImdbBadge({ score }) {
 // ============================================================
 // MOVIE CARD
 // ============================================================
-function MovieCard({ movie }) {
+function MovieCard({ movie, onMovieClick }) {
   return (
-    <div className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[175px] lg:w-[190px] cursor-pointer group">
+    <div onClick={() => onMovieClick && onMovieClick(movie)} className="flex-shrink-0 w-[140px] sm:w-[160px] md:w-[175px] lg:w-[190px] cursor-pointer group">
       <div className="relative overflow-hidden rounded-lg aspect-[2/3] bg-gray-900">
         <img
           src={movie.poster}
@@ -154,7 +155,7 @@ function MovieCard({ movie }) {
 // ============================================================
 // SCROLL ROW
 // ============================================================
-function ScrollRow({ title, items }) {
+function ScrollRow({ title, items, onMovieClick }) {
   const ref = useRef(null);
   const scroll = (dir) => {
     if (ref.current) ref.current.scrollBy({ left: dir * 400, behavior: "smooth" });
@@ -166,7 +167,7 @@ function ScrollRow({ title, items }) {
         <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-white">{title}</h2>
 
         {/* "See more" — red filled box, hidden on mobile */}
-        <button style={{ background: 'none', border: 'none', color: '#e50914' }} className="sm:flex items-center gap-1 text-xs sm:text-sm font-bold hover:opacity-75 transition-opacity cursor-pointer">
+        <button style={{ background: 'none', border: 'none', color: '#e50914' }} className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-bold hover:opacity-75 transition-opacity cursor-pointer">
           See more <span className="text-base">›</span>
         </button>
       </div>
@@ -186,7 +187,7 @@ function ScrollRow({ title, items }) {
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {items.map((movie, i) => (
-            <MovieCard key={i} movie={movie} />
+            <MovieCard key={i} movie={movie} onMovieClick={onMovieClick} />
           ))}
         </div>
 
@@ -240,7 +241,7 @@ function GenreCard({ genre }) {
 // ============================================================
 // HERO — auto-rotates every 6s with smooth fade
 // ============================================================
-function Hero() {
+function Hero({ onMovieClick }) {
   const [idx, setIdx] = useState(0);
   const [visible, setVisible] = useState(true);
 
@@ -305,7 +306,8 @@ function Hero() {
 
         {/* See More — Netflix red */}
         <button
-          style={{ backgroundColor: '#e50914', color: '#fff', border: 'none' }}
+          onClick={() => onMovieClick && onMovieClick(movie)}
+          style={{ backgroundColor: '#e50914', color: '#fff', border: 'none', cursor: 'pointer' }}
           className="text-white text-xs sm:text-sm font-bold px-4 sm:px-7 py-1.5 sm:py-2.5 rounded-lg w-fit transition-colors duration-200 tracking-wide hover:opacity-90"
         >
           See More
@@ -343,15 +345,17 @@ function Hero() {
 // HOME PAGE
 // ============================================================
 export default function HomePage() {
+  const navigate = useNavigate();
+  const handleMovieClick = (movie) => navigate(`/movie/${movie.id}`, { state: { movie } });
   return (
     <div className="w-full min-h-screen text-white font-sans overflow-x-hidden" style={{ background: "#111" }}>
       <Navbar />
 
-      <Hero />
+      <Hero onMovieClick={handleMovieClick} />
 
       <div className="pt-6 sm:pt-8">
-        <ScrollRow title="Trending" items={TRENDING} />
-        <ScrollRow title="New Arrival" items={NEW_ARRIVAL} />
+        <ScrollRow title="Trending" items={TRENDING} onMovieClick={handleMovieClick} />
+        <ScrollRow title="New Arrival" items={NEW_ARRIVAL} onMovieClick={handleMovieClick} />
 
         {/* Popular Top 10 In Genres */}
         <section className="px-4 sm:px-6 md:px-10 pb-16">
