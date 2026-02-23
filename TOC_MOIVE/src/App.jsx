@@ -5,7 +5,7 @@ import MoviesPage from './MoviesPage'
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/TOC_movie_website">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/movies/:id" element={<DetailPage />} />
