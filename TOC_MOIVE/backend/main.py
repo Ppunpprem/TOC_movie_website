@@ -16,10 +16,10 @@ def get_crawler() -> IMDbMovieCrawler:
     global _crawler_cache
     with _cache_lock:
         if _crawler_cache is None:
-            print("Cold-start: fetching IMDb Top 250 …")
+            print("Cold-start: fetching IMDb Top 150 …")
             c = IMDbMovieCrawler()
-            c.fetch_top_movies()                                   # list of 250
-            c.fetch_movies_details_parallel(c.movies, max_workers=10)  # all details
+            c.fetch_top_movies()                                   # list of 150
+            c.fetch_movies_details_parallel(c.movies, max_workers=20)# all details
             _crawler_cache = c
             print(f"Cache ready — {len(c.movies)} movies loaded")
         return _crawler_cache
@@ -32,10 +32,10 @@ def format_movie_brief(m: dict) -> dict:
         "title":    m.get("title"),
         "year":     m.get("year"),
         "rating":   m.get("rating"),
+        "plot":     m.get("plot"),
         "poster":   m.get("poster"),
         "genres":   m.get("genres", []),
-        # "language" in the frontend actually means country of origin
-        "language": m.get("country", ""),
+        "language": m.get("country", ""), # "language" in the frontend actually means country of origin
     }
 
 
@@ -46,6 +46,25 @@ def format_movie_detail(movie: dict) -> dict:
         directors_str = ", ".join(directors)
     else:
         directors_str = str(directors)
+
+    # Cast may be stored as list of dicts {"name", "img"} (new crawler)
+    raw_cast = movie.get("cast", [])
+    cast_list = []
+    for actor in raw_cast:
+        if isinstance(actor, dict):
+            name    = actor.get("name", "")
+            img_url = actor.get("img", "")
+        else:
+            name    = str(actor)
+            img_url = ""
+
+        # Fall back to generated avatar if no real photo was scraped
+        if not img_url:
+            img_url = (
+                f"https://ui-avatars.com/api/"
+                f"?name={name.replace(' ', '+')}&background=333&color=fff&size=150"
+            )
+        cast_list.append({"name": name, "img": img_url})
 
     return {
         "id":          movie.get("id"),
@@ -63,12 +82,7 @@ def format_movie_detail(movie: dict) -> dict:
         "awardsInfo":  movie.get("awards"),
         "backdrop":    movie.get("poster"),
         "plot":        movie.get("plot"),
-        "cast": [
-            # cast images are not scraped from IMDb – keep blank so frontend
-            # falls back to initials avatar gracefully
-            {"name": actor, "img": f"https://ui-avatars.com/api/?name={actor.replace(' ', '+')}&background=333&color=fff&size=150"}
-            for actor in movie.get("cast", [])
-        ],
+        "cast":       cast_list,
     }
 
 
@@ -131,17 +145,17 @@ def get_movies():
 def get_movie(movie_id):
     crawler = get_crawler()
 
-    # movies_dict is built during fetch_top_movies / _extract_from_json
+    # movies_dict is built during fetch_top_movies,_extract_from_json
     movie = crawler.movies_dict.get(movie_id)
 
-    # fallback linear scan (handles edge-cases where dict wasn't populated)
+    #fallback to linear search if not found in movies_dict (in case some movies were missed during dict construction)
     if not movie:
         movie = next((m for m in crawler.movies if m.get("id") == movie_id), None)
 
     if not movie:
         return jsonify({"error": "Movie not found"}), 404
 
-    # details already fetched during warm-up; fetch on-demand only if missing
+    # details might not have been fetched for all movies during initial crawl to save time
     if not movie.get("details_fetched"):
         movie = crawler.fetch_movie_details(movie)
 
