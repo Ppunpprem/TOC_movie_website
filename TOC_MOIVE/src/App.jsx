@@ -3,6 +3,7 @@ import HomePage from './HomePage.jsx'
 import DetailPage from './detailpage.jsx'
 import MoviesPage from './MoviesPage'
 
+// this one is the only correct path which work properly the website
 function App() {
   return (
     <BrowserRouter basename="/TOC_movie_website">
