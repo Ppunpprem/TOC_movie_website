@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+.no-scrollbar::-webkit-scrollbar { display: none !important; }
+.no-scrollbar { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+
+/*Page scrollbar*/
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #e50914;
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #444 #1a1a1a;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
