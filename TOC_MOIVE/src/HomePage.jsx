@@ -107,7 +107,7 @@ function ScrollRow({ title, items, loading, onMovieClick, onSeeMore }) {
         {/* Scroll container */}
         <div
           ref={ref}
-          className="flex gap-4 px-4 pb-2 overflow-x-auto scroll-smooth sm:px-6 md:px-10"
+          className="flex gap-4 px-4 pb-2 overflow-x-auto scroll-smooth sm:px-6 md:px-10 no-scrollbar"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {loading
@@ -258,8 +258,8 @@ function Hero({ movies, loading, onMovieClick }) {
           <span className="text-[11px] sm:text-sm text-gray-400 font-semibold tracking-wide">
             {movie.year}
           </span>
-          {movie.language && (
-            <span className="text-[11px] sm:text-sm text-gray-400">{movie.language}</span>
+          {movie.language || movie.country && (
+            <span className="text-[11px] sm:text-sm text-gray-400">{movie.language || movie.country}</span>
           )}
         </div>
 
@@ -370,9 +370,21 @@ export default function HomePage() {
   }
 
   // heroMovies from allMovies sorted by rating 
-  const heroMovies = [...allMovies]
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    .slice(0, 5);
+  const [heroMovies, setHeroMovies] = useState([]);
+
+  useEffect(() => {
+    if (allMovies.length === 0) return;
+    const top5 = [...allMovies]
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, 5);
+
+    // Fetch full details for each hero movie to get plot
+    Promise.all(
+      top5.map(m =>
+        fetch(`${API}/movies/${m.id}`).then(r => r.json()).catch(() => m)
+      )
+    ).then(setHeroMovies);
+  }, [allMovies]);
 
   return (
     <div
@@ -383,7 +395,7 @@ export default function HomePage() {
 
       <Hero
         movies={heroMovies}
-        loading={loading}
+        loading={loading || heroMovies.length === 0}
         onMovieClick={handleMovieClick}
       />
 
